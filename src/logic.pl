@@ -2,6 +2,14 @@ playerVSplayer(Game):-
 	initBoard(Board),
 	Game = [Board, darkPlayer, pvp], !.
 	
+playerVScpu(Game):-
+	initBoard(Board),
+	Game = [Board, darkPlayer, pvcpu], !.
+	
+cpuVScpu(Game):-
+	initBoard(Board),
+	Game = [Board, darkPlayer, cpuvcpu], !.
+	
 getGameBoard([Board|_], Board).
 
 getPlayerTurn([_,Player,_], Player).
@@ -38,7 +46,7 @@ checkVedge(Row, Column, Board, Player):-
 	Index is 0,
 	getRowIndex(Row, Column, Board, Player, Index).
 	
-getRowIndex(Row, Column, Board, Player, 11):-
+getRowIndex(_, _, _, _, 11):-
 	fail.
 getRowIndex(Row, Column, Board, Player, Index):-
 	getRow(Index, Board, FullRow),
@@ -64,24 +72,27 @@ checkLast(FullRow, Player):-
 findPath([Row, Column], [DestRow, DestColumn], Board, Player):-
 	findPath([Row, Column], [DestRow, DestColumn], [[Row, Column]], Board, Player).
 findPath([Row, Column], [DestRow, DestColumn], Visited, Board, Player):-
-	neighbour([Row, Column], [NextRow, NextColumn], Board, Player),
+	%write('Visited: '), write(Visited), nl,
+	neighbour([Row, Column], [NextRow, NextColumn], Visited, Board, Player),
 	\+(member([NextRow, NextColumn], Visited)),
 	findPath([NextRow, NextColumn], [DestRow, DestColumn], [[NextRow, NextColumn]|Visited], Board, Player).
-findPath([Row, Column], [Row, Column], Visited, Board, Player).
+findPath([Row, Column], [Row, Column], _, _, _).
 
-neighbour([Row, Column], [NextRow, NextColumn], Board, Player):-
+neighbour([Row, Column], [NextRow, NextColumn], Visited, Board, Player):-
 	LeftColumn is Column - 1,
 	RightColumn is Column + 1,
 	TopRow is Row - 1,
 	BottomRow is Row + 1,
 	(
 		LeftColumn >= 0,
+		\+(member([Row, LeftColumn], Visited)),
 		getMatrixElement(Board, Row, LeftColumn, Piece),
 		playerPiece(Player, Piece),
 		NextRow is Row,
 		NextColumn is LeftColumn;
 		
 		LeftColumn >= 0, TopRow >= 0,
+		\+(member([TopRow, LeftColumn], Visited)),
 		getMatrixElement(Board, TopRow, LeftColumn, Piece),
 		playerPiece(Player, Piece),
 		checkCross(Row, Column, TopRow, LeftColumn, Board, Player),
@@ -89,12 +100,14 @@ neighbour([Row, Column], [NextRow, NextColumn], Board, Player):-
 		NextColumn is LeftColumn;
 		
 		TopRow >= 0,
+		\+(member([TopRow, Column], Visited)),
 		getMatrixElement(Board, TopRow, Column, Piece),
 		playerPiece(Player, Piece),
 		NextRow is TopRow,
 		NextColumn is Column;
 		
 		TopRow >= 0, RightColumn =< 10,
+		\+(member([TopRow, RightColumn], Visited)),
 		getMatrixElement(Board, TopRow, RightColumn, Piece),
 		playerPiece(Player, Piece),
 		checkCross(Row, Column, TopRow, RightColumn, Board, Player),
@@ -102,12 +115,14 @@ neighbour([Row, Column], [NextRow, NextColumn], Board, Player):-
 		NextColumn is RightColumn;
 		
 		RightColumn =< 10,
+		\+(member([Row, RightColumn], Visited)),
 		getMatrixElement(Board, Row, RightColumn, Piece),
 		playerPiece(Player, Piece),
 		NextRow is Row,
 		NextColumn is RightColumn;
 		
 		RightColumn =< 10, BottomRow =< 10,
+		\+(member([BottomRow, RightColumn], Visited)),
 		getMatrixElement(Board, BottomRow, RightColumn, Piece),
 		playerPiece(Player, Piece),
 		checkCross(Row, Column, BottomRow, RightColumn, Board, Player),
@@ -115,12 +130,14 @@ neighbour([Row, Column], [NextRow, NextColumn], Board, Player):-
 		NextColumn is RightColumn;
 		
 		BottomRow =< 10,
+		\+(member([BottomRow, Column], Visited)),
 		getMatrixElement(Board, BottomRow, Column, Piece),
 		playerPiece(Player, Piece),
 		NextRow is BottomRow,
 		NextColumn is Column;
 		
 		BottomRow =< 10, LeftColumn >= 0,
+		\+(member([BottomRow, LeftColumn], Visited)),
 		getMatrixElement(Board, BottomRow, LeftColumn, Piece),
 		playerPiece(Player, Piece),
 		checkCross(Row, Column, BottomRow, LeftColumn, Board, Player),
@@ -145,7 +162,6 @@ checkCross(Row, Column, CornerRow, CornerColumn, Board, Player):-
 	
 checkCrossValues(Row, Column, CornerRow, CornerColumn, Board, Player):-
 	opponent(Player, Opponent),
-	
 	getMatrixElement(Board, CornerRow, Column, PieceB),
 	(
 		playerPiece(Opponent, PieceB),
@@ -251,23 +267,7 @@ getNineCells(Row, Column, Cells, Board):-
 	Cells = [[CellA, CellB, CellC],
 			 [CellD, CellE, CellF],
 			 [CellG, CellH, CellI]].
-
-	
-printCells([L | Ls]) :-
-	printCellsRows([L | Ls]).
-	printCellsRows([]).
-printCellsRows([L | Ls]):-
-	printCellsRow(L),
-	printCellsRows(Ls).
-	printCellsRow([]).
-printCellsRow(L):-
-	printCellPieces(L), nl.
-	
-printCellPieces([]).
-printCellPieces([P | Ps]):-
-	write(' '), write(P),
-	printCellPieces(Ps).
-	
+			 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 validatePlay(Row, Column, PieceValue, Player, Game):-
 	getSurroundingCells(Row, Column, Game, Cells),
@@ -451,8 +451,6 @@ checkTwoEmpty(A, B, C, D):-
 crossCheck(A,B,C,D):-
 	OpponentCross is B + C,
 	PlayerCross is A + D,
-	write('OpponentCross: '), write(OpponentCross), nl,
-	write('PlayerCross: '), write(PlayerCross), nl,
 	OpponentCross < PlayerCross.
 	
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

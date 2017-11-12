@@ -5,7 +5,9 @@
 :- include('menu.pl').
 :- include('logic.pl').
 :- include('storage.pl').
+:- include('ai.pl').
 :- use_module(library(lists)).
+:- use_module(library(random)).
 
 consta:-
 	menu.
@@ -13,28 +15,22 @@ consta:-
 %Game Loop
 play(Game):-
 	victoryCondition(Game) -> gameOver(Game);
-	humanPlay(Game,GameState), play(GameState).
-/*
-	%victoryCondition(Game),
+	%pvp | pvc
 	(
-		%pvp | pvc
+		humanPlay(Game,GameState),
 		(
-			humanPlay(Game,GameState),
-			(
-				%pvp
-				(getMode(GameState, Mode), Mode == pvp) -> (play(GameState), !);
-				
-				%pvc
-				%(computerPlay(GameState, ComputerGameState)) -> (play(ComputerGameState), !)
-				
-			)
+			%pvp
+			getGameMode(GameState, Mode), Mode == pvp, play(GameState), !;
+			
+			%pvc
+			cpuPlay(GameState, ComputerGameState), play(ComputerGameState), !
+			
 		)
 	).
-*/
 
 gameOver(Game):-
-	getPlayerTurn(Game, Player),
-	playerName(Player, PlayerName),
+	getGameBoard(Game, Board), printBoard(Board),
+	getPlayerTurn(Game, Player), playerName(Player, PlayerName),
 	nl,
 	write('        GAME OVER!        '),
 	nl,

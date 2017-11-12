@@ -96,6 +96,11 @@ printRowPieces([P | Ps]):-
 	getCellPiece(P, Piece),
 	write(' '), write(Piece),
 	printRowPieces(Ps).
+	
+printCellPieces([]).
+printCellPieces([P | Ps]):-
+	write(' '), write(P),
+	printCellPieces(Ps).
 
 getCellPiece(empty, ' ').
 getCellPiece(dark, 'x').
