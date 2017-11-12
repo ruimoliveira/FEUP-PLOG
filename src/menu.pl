@@ -58,13 +58,13 @@ pvcpu:-
 	choosePiecesMenu(Player),
 	(
 		Player == darkPieces, firstPlay(GameState, TempGameState), cpuPlay(TempGameState, NextGameState);
-		Player == lightPieces, cpuPlayPiece(1, GameState, TempGameState), changeTurn(TempGameState, NextGameState)
+		Player == lightPieces, cpuPlayPiece(1, [], GameState, TempGameState), changeTurn(TempGameState, NextGameState)
 	),
 	play(NextGameState).
 	
 cpuvscpu:-
 	cpuVScpu(GameState),
-	cpuPlayPiece(1, GameState, TempGameState),
+	cpuPlayPiece(1, [], GameState, TempGameState),
 	changeTurn(TempGameState, NextGameState),
 	playWithMyself(NextGameState).
 	
@@ -77,6 +77,6 @@ playWithMyself(GameState):-
 seePlayByPlay(NextGameState):-
 	getGameBoard(NextGameState, Board),
 	printBoard(Board),
-	write("Press any key to continue..."), nl,
+	write('Press "Enter" to continue...'), nl,
 	get_char(_), !.
 	
