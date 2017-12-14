@@ -1,5 +1,4 @@
 % Consta
-% João Moranguinho
 % Rui Oliveira
 
 :- include('menu.pl').
